@@ -10,31 +10,37 @@ export function activate(context: vscode.ExtensionContext) {
   const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   statusBarItem.show();
 
-  vscode.window.onDidChangeTextEditorSelection((e) => {
-    if (waitingForChar && e.selections.length > 0) {
-      const editor = vscode.window.activeTextEditor;
-      if (editor) {
+  const disposables: vscode.Disposable[] = [];
+
+  const captureNextChar = (direction: 'forward' | 'backward', select: boolean) => {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      statusBarItem.text = direction === 'forward' ? 'Jump to: ' : 'Jump back to: ';
+
+      const disposable = vscode.window.onDidChangeTextEditorSelection(async () => {
         const document = editor.document;
-        const selection = editor.selection;
-        const position = selection.active;
-        const char = document.getText(new vscode.Range(position, new vscode.Position(position.line, position.character + 1)));
+        const position = editor.selection.active;
+        const charRange = new vscode.Range(position, position.translate(0, 1));
+        const char = document.getText(charRange);
 
         if (char.length === 1) {
           if (direction === 'forward') {
             forwardChar = char;
-            jumpToNextOccurrence(document, position, forwardChar, 'next', shouldSelect);
+            jumpToNextOccurrence(document, position, forwardChar, 'next', select);
           } else if (direction === 'backward') {
             backwardChar = char;
-            jumpToNextOccurrence(document, position, backwardChar, 'previous', shouldSelect);
+            jumpToNextOccurrence(document, position, backwardChar, 'previous', select);
           }
+
           statusBarItem.text = '';
           waitingForChar = false;
-          direction = undefined;
-          shouldSelect = false;
+          disposable.dispose();
         }
-      }
+      });
+
+      disposables.push(disposable);
     }
-  });
+  };
 
   const jumpToNextOccurrence = (document: vscode.TextDocument, position: vscode.Position, char: string, type: 'next' | 'previous', select: boolean) => {
     const text = document.getText();
@@ -65,28 +71,28 @@ export function activate(context: vscode.ExtensionContext) {
     waitingForChar = true;
     direction = 'forward';
     shouldSelect = false;
-    statusBarItem.text = 'Jump to: ';
+    captureNextChar('forward', false);
   });
 
   let jumpBackward = vscode.commands.registerCommand('scotty.jumpBackward', () => {
     waitingForChar = true;
     direction = 'backward';
     shouldSelect = false;
-    statusBarItem.text = 'Jump back to: ';
+    captureNextChar('backward', false);
   });
 
   let selectForward = vscode.commands.registerCommand('scotty.selectForward', () => {
     waitingForChar = true;
     direction = 'forward';
     shouldSelect = true;
-    statusBarItem.text = 'Select to: ';
+    captureNextChar('forward', true);
   });
 
   let selectBackward = vscode.commands.registerCommand('scotty.selectBackward', () => {
     waitingForChar = true;
     direction = 'backward';
     shouldSelect = true;
-    statusBarItem.text = 'Select back to: ';
+    captureNextChar('backward', true);
   });
 
   context.subscriptions.push(jumpForward);
@@ -94,6 +100,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(selectForward);
   context.subscriptions.push(selectBackward);
   context.subscriptions.push(statusBarItem);
+  context.subscriptions.push(...disposables);
 }
 
 export function deactivate() {}
