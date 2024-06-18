@@ -38,40 +38,33 @@ export function activate(context: vscode.ExtensionContext) {
     shouldSelect = select;
     statusBarItem.text = direction === 'forward' ? 'Type character to jump to' : 'Type character to jump back to';
 
-    const disposable = vscode.workspace.onDidChangeTextDocument(async (event) => {
-      const editor = vscode.window.activeTextEditor;
-      if (editor && event.document === editor.document) {
-        const changes = event.contentChanges;
-        if (changes.length > 0) {
-          const char = changes[0].text;
+    vscode.window.showInputBox({
+      prompt: statusBarItem.text,
+      ignoreFocusOut: true,
+      validateInput: text => text.length === 1 ? null : 'Please type a single character'
+    }).then(char => {
+      if (char && char.length === 1) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          const document = editor.document;
+          const position = editor.selection.active;
 
-          if (char && char.length === 1) {
-            const document = editor.document;
-            const position = editor.selection.active;
-
-            if (direction === 'forward') {
-              forwardChar = char;
-              jumpToNextOccurrence(document, position, forwardChar, 'next', shouldSelect);
-            } else if (direction === 'backward') {
-              backwardChar = char;
-              jumpToNextOccurrence(document, position, backwardChar, 'previous', shouldSelect);
-            }
-
-            // Delete the typed character from the document
-            await editor.edit(editBuilder => {
-              editBuilder.delete(new vscode.Range(position.translate(0, -1), position));
-            });
-
-            statusBarItem.text = '';
-            waitingForChar = false;
-            disposable.dispose();
-            autoJumpEnabled = true;
+          if (direction === 'forward') {
+            forwardChar = char;
+            jumpToNextOccurrence(document, position, forwardChar, 'next', shouldSelect);
+          } else if (direction === 'backward') {
+            backwardChar = char;
+            jumpToNextOccurrence(document, position, backwardChar, 'previous', shouldSelect);
           }
+
+          statusBarItem.text = '';
+          waitingForChar = false;
+          autoJumpEnabled = true;
         }
+      } else {
+        resetAutoJump();
       }
     });
-
-    context.subscriptions.push(disposable);
   };
 
   const jumpToNextOccurrence = (document: vscode.TextDocument, position: vscode.Position, char: string, type: 'next' | 'previous', select: boolean) => {
