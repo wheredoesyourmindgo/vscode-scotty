@@ -33,6 +33,16 @@
         "command": "scotty.jumpBackward",
         "key": "cmd+7",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "scotty.selectForward",
+        "key": "cmd+shift+0",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "scotty.selectBackward",
+        "key": "cmd+shift+7",
+        "when": "editorTextFocus"
       }
     ]
   },
