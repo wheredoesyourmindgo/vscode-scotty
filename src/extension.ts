@@ -7,27 +7,35 @@ export function activate(context: vscode.ExtensionContext) {
   let direction: 'forward' | 'backward' | undefined;
   let shouldSelect: boolean = false;
   let lastJumpPosition: vscode.Position | undefined;
+  let autoJumpEnabled: boolean = false;
 
   const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   statusBarItem.show();
 
+  const resetAutoJump = () => {
+    autoJumpEnabled = false;
+    statusBarItem.text = '';
+  };
+
+  vscode.window.onDidChangeTextEditorSelection(resetAutoJump);
+  vscode.workspace.onDidChangeTextDocument(resetAutoJump);
+  vscode.window.onDidChangeActiveTextEditor(resetAutoJump);
+
   const captureNextChar = (direction: 'forward' | 'backward', select: boolean) => {
     waitingForChar = true;
     shouldSelect = select;
-    statusBarItem.text = direction === 'forward' ? 'Jump to: ' : 'Jump back to: ';
+    statusBarItem.text = direction === 'forward' ? 'Type character to jump to' : 'Type character to jump back to';
 
-    // Temporarily show an input box to capture the next character
-    vscode.window.showInputBox({
-      prompt: direction === 'forward' ? 'Jump to:' : 'Jump back to:',
-      ignoreFocusOut: true,
-      placeHolder: 'Type the character to jump to'
-    }).then(char => {
-      if (char && char.length === 1) {
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-          const document = editor.document;
-          const position = editor.selection.active;
+    const disposable = vscode.window.onDidChangeTextEditorSelection(async (e) => {
+      const editor = vscode.window.activeTextEditor;
+      if (editor) {
+        const document = editor.document;
+        const position = editor.selection.active;
 
+        // Read the last typed character
+        const char = document.getText(new vscode.Range(position.translate(0, -1), position));
+
+        if (char && char.length === 1) {
           if (direction === 'forward') {
             forwardChar = char;
             jumpToNextOccurrence(document, position, forwardChar, 'next', shouldSelect);
@@ -35,11 +43,21 @@ export function activate(context: vscode.ExtensionContext) {
             backwardChar = char;
             jumpToNextOccurrence(document, position, backwardChar, 'previous', shouldSelect);
           }
+
+          // Delete the typed character from the document
+          await editor.edit(editBuilder => {
+            editBuilder.delete(new vscode.Range(position.translate(0, -1), position));
+          });
+
+          statusBarItem.text = '';
+          waitingForChar = false;
+          disposable.dispose();
+          autoJumpEnabled = true;
         }
       }
-      statusBarItem.text = '';
-      waitingForChar = false;
     });
+
+    context.subscriptions.push(disposable);
   };
 
   const jumpToNextOccurrence = (document: vscode.TextDocument, position: vscode.Position, char: string, type: 'next' | 'previous', select: boolean) => {
@@ -75,7 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
     const document = editor.document;
     const position = editor.selection.active;
 
-    if (lastJumpPosition && position.isEqual(lastJumpPosition)) {
+    if (autoJumpEnabled && lastJumpPosition && position.isEqual(lastJumpPosition)) {
       if (direction === 'forward' && forwardChar) {
         jumpToNextOccurrence(document, position, forwardChar, 'next', select);
       } else if (direction === 'backward' && backwardChar) {
