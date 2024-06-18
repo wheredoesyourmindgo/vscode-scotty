@@ -36,6 +36,11 @@
       }
     ]
   },
+  "publisher": "wheredoesyourmindgo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wheredoesyourmindgo/vscode-scotty"
+  },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
     "compile": "tsc -p ./",
