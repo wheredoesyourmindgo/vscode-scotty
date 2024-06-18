@@ -15,36 +15,30 @@ export function activate(context: vscode.ExtensionContext) {
     shouldSelect = select;
     statusBarItem.text = direction === 'forward' ? 'Jump to: ' : 'Jump back to: ';
 
-    const disposable = vscode.window.onDidChangeTextEditorSelection(async (e) => {
-      if (!waitingForChar) return;
-
-      const editor = e.textEditor;
-      const document = editor.document;
-      const position = editor.selection.active;
-
-      // Temporarily show an input box to capture the next character
-      const char = await vscode.window.showInputBox({
-        prompt: direction === 'forward' ? 'Jump to:' : 'Jump back to:',
-        ignoreFocusOut: true
-      });
-
+    // Show an input box to capture the next character
+    vscode.window.showInputBox({
+      prompt: direction === 'forward' ? 'Jump to:' : 'Jump back to:',
+      ignoreFocusOut: true,
+      placeHolder: 'Type the character to jump to'
+    }).then(char => {
       if (char && char.length === 1) {
-        if (direction === 'forward') {
-          forwardChar = char;
-          jumpToNextOccurrence(document, position, forwardChar, 'next', shouldSelect);
-        } else if (direction === 'backward') {
-          backwardChar = char;
-          jumpToNextOccurrence(document, position, backwardChar, 'previous', shouldSelect);
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          const document = editor.document;
+          const position = editor.selection.active;
+
+          if (direction === 'forward') {
+            forwardChar = char;
+            jumpToNextOccurrence(document, position, forwardChar, 'next', shouldSelect);
+          } else if (direction === 'backward') {
+            backwardChar = char;
+            jumpToNextOccurrence(document, position, backwardChar, 'previous', shouldSelect);
+          }
         }
-
-        statusBarItem.text = '';
-        waitingForChar = false;
       }
-
-      disposable.dispose();
+      statusBarItem.text = '';
+      waitingForChar = false;
     });
-
-    context.subscriptions.push(disposable);
   };
 
   const jumpToNextOccurrence = (document: vscode.TextDocument, position: vscode.Position, char: string, type: 'next' | 'previous', select: boolean) => {
