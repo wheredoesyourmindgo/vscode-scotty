@@ -2,6 +2,7 @@
   "name": "vscode-scotty",
   "displayName": "Beam Me Up, Scotty!",
   "description": "Jump to character",
+  "license": "MIT",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.90.0"
@@ -14,23 +15,23 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.jumpForward",
+        "command": "scotty.jumpForward",
         "title": "Jump Forward"
       },
       {
-        "command": "extension.jumpBackward",
+        "command": "scotty.jumpBackward",
         "title": "Jump Backward"
       }
     ],
     "keybindings": [
       {
-        "command": "extension.jumpForward",
-        "key": "ctrl+alt+f",
+        "command": "scotty.jumpForward",
+        "key": "cmd+0",
         "when": "editorTextFocus"
       },
       {
-        "command": "extension.jumpBackward",
-        "key": "ctrl+alt+b",
+        "command": "scotty.jumpBackward",
+        "key": "cmd+7",
         "when": "editorTextFocus"
       }
     ]
