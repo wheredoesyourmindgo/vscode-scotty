@@ -4,7 +4,7 @@ export function activate(context: vscode.ExtensionContext) {
   let forwardChar: string | undefined;
   let backwardChar: string | undefined;
 
-  let jumpForward = vscode.commands.registerCommand('extension.jumpForward', async () => {
+  let jumpForward = vscode.commands.registerCommand('scotty.jumpForward', async () => {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       const document = editor.document;
@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  let jumpBackward = vscode.commands.registerCommand('extension.jumpBackward', async () => {
+  let jumpBackward = vscode.commands.registerCommand('scotty.jumpBackward', async () => {
     const editor = vscode.window.activeTextEditor;
     if (editor) {
       const document = editor.document;
