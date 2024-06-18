@@ -6,6 +6,7 @@ export function activate(context: vscode.ExtensionContext) {
   let waitingForChar: boolean = false;
   let direction: 'forward' | 'backward' | undefined;
   let shouldSelect: boolean = false;
+  let lastJumpPosition: vscode.Position | undefined;
 
   const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   statusBarItem.show();
@@ -15,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     shouldSelect = select;
     statusBarItem.text = direction === 'forward' ? 'Jump to: ' : 'Jump back to: ';
 
-    // Show an input box to capture the next character
+    // Temporarily show an input box to capture the next character
     vscode.window.showInputBox({
       prompt: direction === 'forward' ? 'Jump to:' : 'Jump back to:',
       ignoreFocusOut: true,
@@ -62,24 +63,43 @@ export function activate(context: vscode.ExtensionContext) {
           editor.selection = new vscode.Selection(newPosition, newPosition);
         }
         vscode.window.setStatusBarMessage(`Jumped to ${type} "${char}"`);
+        lastJumpPosition = newPosition;
       }
     }
   };
 
+  const handleJumpCommand = (direction: 'forward' | 'backward', select: boolean) => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) return;
+
+    const document = editor.document;
+    const position = editor.selection.active;
+
+    if (lastJumpPosition && position.isEqual(lastJumpPosition)) {
+      if (direction === 'forward' && forwardChar) {
+        jumpToNextOccurrence(document, position, forwardChar, 'next', select);
+      } else if (direction === 'backward' && backwardChar) {
+        jumpToNextOccurrence(document, position, backwardChar, 'previous', select);
+      }
+    } else {
+      captureNextChar(direction, select);
+    }
+  };
+
   let jumpForward = vscode.commands.registerCommand('scotty.jumpForward', () => {
-    captureNextChar('forward', false);
+    handleJumpCommand('forward', false);
   });
 
   let jumpBackward = vscode.commands.registerCommand('scotty.jumpBackward', () => {
-    captureNextChar('backward', false);
+    handleJumpCommand('backward', false);
   });
 
   let selectForward = vscode.commands.registerCommand('scotty.selectForward', () => {
-    captureNextChar('forward', true);
+    handleJumpCommand('forward', true);
   });
 
   let selectBackward = vscode.commands.registerCommand('scotty.selectBackward', () => {
-    captureNextChar('backward', true);
+    handleJumpCommand('backward', true);
   });
 
   context.subscriptions.push(jumpForward);
