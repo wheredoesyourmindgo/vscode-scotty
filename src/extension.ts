@@ -3,26 +3,34 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
   let forwardChar: string | undefined;
   let backwardChar: string | undefined;
-  let waitingForChar: boolean = false;
-  let direction: 'forward' | 'backward' | undefined;
-  let shouldSelect: boolean = false;
   let lastJumpPosition: vscode.Position | undefined;
   let autoJumpEnabled: boolean = false;
+  let shouldSelect: boolean = false;
 
   const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   statusBarItem.show();
 
   const resetAutoJump = () => {
     autoJumpEnabled = false;
+    lastJumpPosition = undefined;
     statusBarItem.text = '';
   };
 
-  vscode.window.onDidChangeTextEditorSelection(resetAutoJump);
-  vscode.workspace.onDidChangeTextDocument(resetAutoJump);
-  vscode.window.onDidChangeActiveTextEditor(resetAutoJump);
+  vscode.window.onDidChangeTextEditorSelection(() => {
+    if (!waitingForChar) {
+      resetAutoJump();
+    }
+  });
+
+  vscode.workspace.onDidChangeTextDocument(() => {
+    resetAutoJump();
+  });
+
+  vscode.window.onDidChangeActiveTextEditor(() => {
+    resetAutoJump();
+  });
 
   const captureNextChar = (direction: 'forward' | 'backward', select: boolean) => {
-    waitingForChar = true;
     shouldSelect = select;
     statusBarItem.text = direction === 'forward' ? 'Type character to jump to' : 'Type character to jump back to';
 
@@ -33,7 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
         const position = editor.selection.active;
 
         // Read the last typed character
-        const char = document.getText(new vscode.Range(position.translate(0, -1), position));
+        const charRange = new vscode.Range(position.translate(0, -1), position);
+        const char = document.getText(charRange);
 
         if (char && char.length === 1) {
           if (direction === 'forward') {
@@ -46,11 +55,10 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Delete the typed character from the document
           await editor.edit(editBuilder => {
-            editBuilder.delete(new vscode.Range(position.translate(0, -1), position));
+            editBuilder.delete(charRange);
           });
 
           statusBarItem.text = '';
-          waitingForChar = false;
           disposable.dispose();
           autoJumpEnabled = true;
         }
