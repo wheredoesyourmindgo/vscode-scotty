@@ -43,6 +43,26 @@
         "command": "scotty.selectBackward",
         "key": "cmd+shift+7",
         "when": "editorTextFocus"
+      },
+      {
+        "command": "scotty.jumpForwardCaseInsensitive",
+        "key": "alt+cmd+0",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "scotty.jumpBackwardCaseInsensitive",
+        "key": "alt+cmd+7",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "scotty.selectForwardCaseInsensitive",
+        "key": "alt+cmd+shift+0",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "scotty.selectBackwardCaseInsensitive",
+        "key": "alt+cmd+shift+7",
+        "when": "editorTextFocus"
       }
     ]
   },

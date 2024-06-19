@@ -1,181 +1,164 @@
-import * as vscode from 'vscode'
+import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-  let jumpToChar: string | undefined
-  let lastJumpPosition: vscode.Position | undefined
-  let autoJumpEnabled: boolean = false
-  let shouldSelect: boolean = false
+  let jumpToChar: string | undefined;
+  let lastJumpPosition: vscode.Position | undefined;
+  let autoJumpEnabled: boolean = false;
+  let shouldSelect: boolean = false;
 
-  const statusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left
-  )
-  statusBarItem.show()
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
+  statusBarItem.show();
 
   const resetAutoJump = () => {
-    autoJumpEnabled = false
-    lastJumpPosition = undefined
-    statusBarItem.text = ''
-  }
+    autoJumpEnabled = false;
+    lastJumpPosition = undefined;
+    statusBarItem.text = '';
+  };
 
   vscode.window.onDidChangeTextEditorSelection(() => {
     if (!autoJumpEnabled) {
-      resetAutoJump()
+      resetAutoJump();
     }
-  })
+  });
 
   vscode.workspace.onDidChangeTextDocument(() => {
-    resetAutoJump()
-  })
+    resetAutoJump();
+  });
 
   vscode.window.onDidChangeActiveTextEditor(() => {
-    resetAutoJump()
-  })
+    resetAutoJump();
+  });
 
-  const captureNextChar = (
-    direction: 'forward' | 'backward',
-    select: boolean
-  ) => {
-    shouldSelect = select
-    statusBarItem.text =
-      direction === 'forward'
-        ? 'Type character to jump to'
-        : 'Type character to jump back to'
+  const captureNextChar = (direction: 'forward' | 'backward', select: boolean, caseInsensitive: boolean) => {
+    shouldSelect = select;
+    statusBarItem.text = direction === 'forward' ? 'Type characters to jump to' : 'Type characters to jump back to';
 
     vscode.window
       .showInputBox({
         prompt: statusBarItem.text,
-        ignoreFocusOut: true
-        // validateInput: (text) =>
-        //   text.length === 1 ? null : 'Please type a single character'
+        ignoreFocusOut: true,
       })
       .then((char) => {
-        // if (char && char.length === 1) {
         if (char) {
-          const editor = vscode.window.activeTextEditor
+          const editor = vscode.window.activeTextEditor;
           if (editor) {
-            const document = editor.document
-            const position = editor.selection.active
-            jumpToChar = char
+            const document = editor.document;
+            const position = editor.selection.active;
+            jumpToChar = char;
 
             if (direction === 'forward') {
-              jumpToNextOccurrence(
-                document,
-                position,
-                jumpToChar,
-                'next',
-                shouldSelect
-              )
+              jumpToNextOccurrence(document, position, jumpToChar, 'next', shouldSelect, caseInsensitive);
             } else if (direction === 'backward') {
-              jumpToNextOccurrence(
-                document,
-                position,
-                jumpToChar,
-                'previous',
-                shouldSelect
-              )
+              jumpToNextOccurrence(document, position, jumpToChar, 'previous', shouldSelect, caseInsensitive);
             }
 
-            statusBarItem.text = ''
-            autoJumpEnabled = true
+            statusBarItem.text = '';
+            autoJumpEnabled = true;
           }
         } else {
-          resetAutoJump()
+          resetAutoJump();
         }
-      })
-  }
+      });
+  };
 
   const jumpToNextOccurrence = (
     document: vscode.TextDocument,
     position: vscode.Position,
     char: string,
     type: 'next' | 'previous',
-    select: boolean
+    select: boolean,
+    caseInsensitive: boolean
   ) => {
-    const text = document.getText()
-    let index: number
+    const text = document.getText();
+    let index: number;
+    const searchText = caseInsensitive ? text.toLowerCase() : text;
+    const searchChar = caseInsensitive ? char.toLowerCase() : char;
 
     if (type === 'next') {
-      index = text.indexOf(char, document.offsetAt(position) + 1)
+      index = searchText.indexOf(searchChar, document.offsetAt(position) + 1);
     } else {
-      index = text.lastIndexOf(char, document.offsetAt(position) - 1)
+      index = searchText.lastIndexOf(searchChar, document.offsetAt(position) - 1);
     }
 
     if (index !== -1) {
-      const newPosition = document.positionAt(index)
-      const editor = vscode.window.activeTextEditor
+      const newPosition = document.positionAt(index);
+      const editor = vscode.window.activeTextEditor;
       if (editor) {
         if (select) {
-          const selection = new vscode.Selection(position, newPosition)
-          editor.selection = selection
+          const selection = new vscode.Selection(position, newPosition);
+          editor.selection = selection;
         } else {
-          editor.selection = new vscode.Selection(newPosition, newPosition)
+          editor.selection = new vscode.Selection(newPosition, newPosition);
         }
-        vscode.window.setStatusBarMessage(`Jumped to ${type} "${char}"`)
-        lastJumpPosition = newPosition
-      }
-    }
-  }
-
-  const handleJumpCommand = (
-    direction: 'forward' | 'backward',
-    select: boolean
-  ) => {
-    const editor = vscode.window.activeTextEditor
-    if (!editor) {
-      return
-    }
-
-    const document = editor.document
-    const position = editor.selection.active
-
-    if (
-      autoJumpEnabled &&
-      lastJumpPosition &&
-      position.isEqual(lastJumpPosition)
-    ) {
-      if (direction === 'forward' && jumpToChar) {
-        jumpToNextOccurrence(document, position, jumpToChar, 'next', select)
-      } else if (direction === 'backward' && jumpToChar) {
-        jumpToNextOccurrence(document, position, jumpToChar, 'previous', select)
+        vscode.window.setStatusBarMessage(`Jumped to ${type} "${char}"`);
+        lastJumpPosition = newPosition;
       }
     } else {
-      captureNextChar(direction, select)
+      vscode.window.setStatusBarMessage(`Character "${char}" not found`);
     }
-  }
+  };
 
-  let jumpForward = vscode.commands.registerCommand(
-    'scotty.jumpForward',
-    () => {
-      handleJumpCommand('forward', false)
+  const handleJumpCommand = (direction: 'forward' | 'backward', select: boolean, caseInsensitive: boolean) => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return;
     }
-  )
 
-  let jumpBackward = vscode.commands.registerCommand(
-    'scotty.jumpBackward',
-    () => {
-      handleJumpCommand('backward', false)
+    const document = editor.document;
+    const position = editor.selection.active;
+
+    if (autoJumpEnabled && lastJumpPosition && position.isEqual(lastJumpPosition)) {
+      if (direction === 'forward' && jumpToChar) {
+        jumpToNextOccurrence(document, position, jumpToChar, 'next', select, caseInsensitive);
+      } else if (direction === 'backward' && jumpToChar) {
+        jumpToNextOccurrence(document, position, jumpToChar, 'previous', select, caseInsensitive);
+      }
+    } else {
+      captureNextChar(direction, select, caseInsensitive);
     }
-  )
+  };
 
-  let selectForward = vscode.commands.registerCommand(
-    'scotty.selectForward',
-    () => {
-      handleJumpCommand('forward', true)
-    }
-  )
+  let jumpForward = vscode.commands.registerCommand('scotty.jumpForward', () => {
+    handleJumpCommand('forward', false, false);
+  });
 
-  let selectBackward = vscode.commands.registerCommand(
-    'scotty.selectBackward',
-    () => {
-      handleJumpCommand('backward', true)
-    }
-  )
+  let jumpBackward = vscode.commands.registerCommand('scotty.jumpBackward', () => {
+    handleJumpCommand('backward', false, false);
+  });
 
-  context.subscriptions.push(jumpForward)
-  context.subscriptions.push(jumpBackward)
-  context.subscriptions.push(selectForward)
-  context.subscriptions.push(selectBackward)
-  context.subscriptions.push(statusBarItem)
+  let selectForward = vscode.commands.registerCommand('scotty.selectForward', () => {
+    handleJumpCommand('forward', true, false);
+  });
+
+  let selectBackward = vscode.commands.registerCommand('scotty.selectBackward', () => {
+    handleJumpCommand('backward', true, false);
+  });
+
+  let jumpForwardCaseInsensitive = vscode.commands.registerCommand('scotty.jumpForwardCaseInsensitive', () => {
+    handleJumpCommand('forward', false, true);
+  });
+
+  let jumpBackwardCaseInsensitive = vscode.commands.registerCommand('scotty.jumpBackwardCaseInsensitive', () => {
+    handleJumpCommand('backward', false, true);
+  });
+
+  let selectForwardCaseInsensitive = vscode.commands.registerCommand('scotty.selectForwardCaseInsensitive', () => {
+    handleJumpCommand('forward', true, true);
+  });
+
+  let selectBackwardCaseInsensitive = vscode.commands.registerCommand('scotty.selectBackwardCaseInsensitive', () => {
+    handleJumpCommand('backward', true, true);
+  });
+
+  context.subscriptions.push(jumpForward);
+  context.subscriptions.push(jumpBackward);
+  context.subscriptions.push(selectForward);
+  context.subscriptions.push(selectBackward);
+  context.subscriptions.push(jumpForwardCaseInsensitive);
+  context.subscriptions.push(jumpBackwardCaseInsensitive);
+  context.subscriptions.push(selectForwardCaseInsensitive);
+  context.subscriptions.push(selectBackwardCaseInsensitive);
+  context.subscriptions.push(statusBarItem);
 }
 
 export function deactivate() {}
