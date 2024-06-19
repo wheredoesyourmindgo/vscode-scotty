@@ -17,7 +17,9 @@ export function activate(context: vscode.ExtensionContext) {
   };
 
   vscode.window.onDidChangeTextEditorSelection(() => {
-    resetAutoJump();
+    if (!autoJumpEnabled) {
+      resetAutoJump();
+    }
   });
 
   vscode.workspace.onDidChangeTextDocument(() => {
