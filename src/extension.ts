@@ -44,12 +44,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window
       .showInputBox({
         prompt: statusBarItem.text,
-        ignoreFocusOut: true,
+        ignoreFocusOut: true
         // validateInput: (text) =>
         //   text.length === 1 ? null : 'Please type a single character'
       })
       .then((char) => {
-        if (char && char.length === 1) {
+        // if (char && char.length === 1) {
+        if (char) {
           const editor = vscode.window.activeTextEditor
           if (editor) {
             const document = editor.document
