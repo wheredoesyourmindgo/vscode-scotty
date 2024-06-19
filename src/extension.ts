@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const handleJumpCommand = (direction: 'forward' | 'backward', select: boolean) => {
     const editor = vscode.window.activeTextEditor;
-    if (!editor) return;
+    if (!editor) {return;}
 
     const document = editor.document;
     const position = editor.selection.active;
