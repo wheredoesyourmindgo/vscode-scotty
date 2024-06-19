@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
-  let forwardChar: string | undefined;
-  let backwardChar: string | undefined;
+  let jumpToChar: string | undefined;
   let lastJumpPosition: vscode.Position | undefined;
   let autoJumpEnabled: boolean = false;
   let shouldSelect: boolean = false;
@@ -44,13 +43,12 @@ export function activate(context: vscode.ExtensionContext) {
         if (editor) {
           const document = editor.document;
           const position = editor.selection.active;
+          jumpToChar = char;
 
           if (direction === 'forward') {
-            forwardChar = char;
-            jumpToNextOccurrence(document, position, forwardChar, 'next', shouldSelect);
+            jumpToNextOccurrence(document, position, jumpToChar, 'next', shouldSelect);
           } else if (direction === 'backward') {
-            backwardChar = char;
-            jumpToNextOccurrence(document, position, backwardChar, 'previous', shouldSelect);
+            jumpToNextOccurrence(document, position, jumpToChar, 'previous', shouldSelect);
           }
 
           statusBarItem.text = '';
@@ -96,10 +94,10 @@ export function activate(context: vscode.ExtensionContext) {
     const position = editor.selection.active;
 
     if (autoJumpEnabled && lastJumpPosition && position.isEqual(lastJumpPosition)) {
-      if (direction === 'forward' && forwardChar) {
-        jumpToNextOccurrence(document, position, forwardChar, 'next', select);
-      } else if (direction === 'backward' && backwardChar) {
-        jumpToNextOccurrence(document, position, backwardChar, 'previous', select);
+      if (direction === 'forward' && jumpToChar) {
+        jumpToNextOccurrence(document, position, jumpToChar, 'next', select);
+      } else if (direction === 'backward' && jumpToChar) {
+        jumpToNextOccurrence(document, position, jumpToChar, 'previous', select);
       }
     } else {
       captureNextChar(direction, select);
