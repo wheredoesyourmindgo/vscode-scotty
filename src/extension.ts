@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
   let forwardChar: string | undefined;
   let backwardChar: string | undefined;
-  let waitingForChar: boolean = false;
   let lastJumpPosition: vscode.Position | undefined;
   let autoJumpEnabled: boolean = false;
   let shouldSelect: boolean = false;
@@ -18,15 +17,11 @@ export function activate(context: vscode.ExtensionContext) {
   };
 
   vscode.window.onDidChangeTextEditorSelection(() => {
-    if (!waitingForChar) {
-      resetAutoJump();
-    }
+    resetAutoJump();
   });
 
   vscode.workspace.onDidChangeTextDocument(() => {
-    if (!waitingForChar) {
-      resetAutoJump();
-    }
+    resetAutoJump();
   });
 
   vscode.window.onDidChangeActiveTextEditor(() => {
@@ -34,7 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   const captureNextChar = (direction: 'forward' | 'backward', select: boolean) => {
-    waitingForChar = true;
     shouldSelect = select;
     statusBarItem.text = direction === 'forward' ? 'Type character to jump to' : 'Type character to jump back to';
 
@@ -58,7 +52,6 @@ export function activate(context: vscode.ExtensionContext) {
           }
 
           statusBarItem.text = '';
-          waitingForChar = false;
           autoJumpEnabled = true;
         }
       } else {
