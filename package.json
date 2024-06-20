@@ -3,7 +3,7 @@
   "displayName": "Beam Me Up, Scotty!",
   "description": "Jump to character",
   "license": "MIT",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "engines": {
     "vscode": "^1.90.0"
   },
