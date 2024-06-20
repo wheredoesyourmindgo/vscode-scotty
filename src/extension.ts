@@ -5,6 +5,7 @@ export function activate(context: vscode.ExtensionContext) {
   let lastJumpPosition: vscode.Position | undefined;
   let autoJumpEnabled: boolean = false;
   let shouldSelect: boolean = false;
+  let caseInsensitive: boolean = false;
 
   const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
   statusBarItem.show();
@@ -12,6 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
   const resetAutoJump = () => {
     autoJumpEnabled = false;
     lastJumpPosition = undefined;
+    jumpToChar = undefined;
+    caseInsensitive = false;
     statusBarItem.text = '';
   };
 
@@ -29,8 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
     resetAutoJump();
   });
 
-  const captureNextChar = (direction: 'forward' | 'backward', select: boolean, caseInsensitive: boolean) => {
+  const captureNextChar = (direction: 'forward' | 'backward', select: boolean, caseInsensitiveFlag: boolean) => {
     shouldSelect = select;
+    caseInsensitive = caseInsensitiveFlag;
     statusBarItem.text = direction === 'forward' ? 'Type characters to jump to' : 'Type characters to jump back to';
 
     vscode.window
@@ -98,7 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
     }
   };
 
-  const handleJumpCommand = (direction: 'forward' | 'backward', select: boolean, caseInsensitive: boolean) => {
+  const handleJumpCommand = (direction: 'forward' | 'backward', select: boolean, caseInsensitiveFlag: boolean) => {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
       return;
@@ -114,7 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
         jumpToNextOccurrence(document, position, jumpToChar, 'previous', select, caseInsensitive);
       }
     } else {
-      captureNextChar(direction, select, caseInsensitive);
+      captureNextChar(direction, select, caseInsensitiveFlag);
     }
   };
 
