@@ -2,6 +2,8 @@
 
 Scotty is a Visual Studio Code extension that allows you to quickly jump to and select specific characters or sequences of characters within your code. You can perform these jumps either case-sensitively or case-insensitively, and you have the option to select text as you jump.
 
+![Scotty Icon](resources/icon.webp)
+
 ## Features
 
 - Jump forward or backward to a specific character or sequence of characters.
@@ -61,7 +63,7 @@ To make changes to this extension:
 
 ## Release Notes
 
-### 0.1.0
+### 0.1.1
 
 - Initial release of Scotty.
 - Added support for jumping and selecting characters forward and backward.

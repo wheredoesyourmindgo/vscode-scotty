@@ -1,15 +1,26 @@
 {
   "name": "vscode-scotty",
   "displayName": "Beam Me Up, Scotty!",
-  "description": "Jump to character",
+  "description": "Scotty is a Visual Studio Code extension that allows you to quickly jump to and select specific characters or sequences of characters within your code. Perform jumps case-sensitively or case-insensitively and select text as you jump. Hopefully this extension seems familiar to clever-f.vim",
+  "categories": [
+    "Other",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "jump",
+    "navigation",
+    "selection",
+    "productivity",
+    "case-insensitive",
+    "clever-f",
+    "search",
+    "smart-navigation"
+  ],
   "license": "MIT",
   "version": "0.1.0",
   "engines": {
     "vscode": "^1.90.0"
   },
-  "categories": [
-    "Other"
-  ],
   "activationEvents": [],
   "main": "./out/extension.js",
   "icon": "resources/icon.webp",
