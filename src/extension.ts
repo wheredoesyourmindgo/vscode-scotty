@@ -90,7 +90,12 @@ export function activate(context: vscode.ExtensionContext) {
       if (editor) {
         if (select) {
           const currentSelection = editor.selection;
-          const newSelection = new vscode.Selection(currentSelection.start, newPosition);
+          let newSelection;
+          if (type === 'next') {
+            newSelection = new vscode.Selection(currentSelection.start, newPosition);
+          } else {
+            newSelection = new vscode.Selection(currentSelection.end, newPosition);
+          }
           editor.selection = newSelection;
         } else {
           editor.selection = new vscode.Selection(newPosition, newPosition);
