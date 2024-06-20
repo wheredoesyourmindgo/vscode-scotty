@@ -89,8 +89,9 @@ export function activate(context: vscode.ExtensionContext) {
       const editor = vscode.window.activeTextEditor;
       if (editor) {
         if (select) {
-          const selection = new vscode.Selection(position, newPosition);
-          editor.selection = selection;
+          const currentSelection = editor.selection;
+          const newSelection = new vscode.Selection(currentSelection.start, newPosition);
+          editor.selection = newSelection;
         } else {
           editor.selection = new vscode.Selection(newPosition, newPosition);
         }
