@@ -63,7 +63,7 @@ To make changes to this extension:
 
 ## Release Notes
 
-### 0.1.1
+### 0.1.2
 
 - Initial release of Scotty.
 - Added support for jumping and selecting characters forward and backward.
