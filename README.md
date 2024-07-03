@@ -15,31 +15,31 @@ Scotty is a Visual Studio Code extension that allows you to quickly jump to and 
 
 | Command                                | Keybinding                | Description                                        |
 |----------------------------------------|---------------------------|----------------------------------------------------|
-| Scotty: Jump Forward                   | `cmd+0`                   | Jump forward to the next occurrence of a character |
-| Scotty: Jump Backward                  | `cmd+7`                   | Jump backward to the previous occurrence of a character |
-| Scotty: Select Forward                 | `cmd+shift+0`             | Select forward to the next occurrence of a character |
-| Scotty: Select Backward                | `cmd+shift+7`             | Select backward to the previous occurrence of a character |
-| Scotty: Jump Forward (Case-Insensitive)| `alt+cmd+0`               | Jump forward to the next occurrence of a character (case-insensitive) |
-| Scotty: Jump Backward (Case-Insensitive)| `alt+cmd+7`              | Jump backward to the previous occurrence of a character (case-insensitive) |
-| Scotty: Select Forward (Case-Insensitive)| `alt+cmd+shift+0`       | Select forward to the next occurrence of a character (case-insensitive) |
-| Scotty: Select Backward (Case-Insensitive)| `alt+cmd+shift+7`      | Select backward to the previous occurrence of a character (case-insensitive) |
+| Scotty: Jump Forward                   | `ctrl+0`                   | Jump forward to the next occurrence of a character |
+| Scotty: Jump Backward                  | `ctrl+7`                   | Jump backward to the previous occurrence of a character |
+| Scotty: Select Forward                 | `ctrl+shift+0`             | Select forward to the next occurrence of a character |
+| Scotty: Select Backward                | `ctrl+shift+7`             | Select backward to the previous occurrence of a character |
+| Scotty: Jump Forward (Case-Insensitive)| `ctrl+alt+0`               | Jump forward to the next occurrence of a character (case-insensitive) |
+| Scotty: Jump Backward (Case-Insensitive)| `ctrl+alt+7`              | Jump backward to the previous occurrence of a character (case-insensitive) |
+| Scotty: Select Forward (Case-Insensitive)| `ctrl+alt+shift+0`       | Select forward to the next occurrence of a character (case-insensitive) |
+| Scotty: Select Backward (Case-Insensitive)| `ctrl+alt+shift+7`      | Select backward to the previous occurrence of a character (case-insensitive) |
 
 ## Usage
 
 1. **Jump Forward**:
-   - Press `cmd+0` to jump forward to the next occurrence of a character or sequence of characters.
+   - Press `ctrl+0` to jump forward to the next occurrence of a character or sequence of characters.
    - Enter the character(s) to jump to in the input box that appears.
 
 2. **Jump Backward**:
-   - Press `cmd+7` to jump backward to the previous occurrence of a character or sequence of characters.
+   - Press `ctrl+7` to jump backward to the previous occurrence of a character or sequence of characters.
    - Enter the character(s) to jump to in the input box that appears.
 
 3. **Select Forward**:
-   - Press `cmd+shift+0` to select forward to the next occurrence of a character or sequence of characters.
+   - Press `ctrl+shift+0` to select forward to the next occurrence of a character or sequence of characters.
    - Enter the character(s) to jump to in the input box that appears.
 
 4. **Select Backward**:
-   - Press `cmd+shift+7` to select backward to the previous occurrence of a character or sequence of characters.
+   - Press `ctrl+shift+7` to select backward to the previous occurrence of a character or sequence of characters.
    - Enter the character(s) to jump to in the input box that appears.
 
 5. **Case-Insensitive Jump and Select**:
@@ -62,6 +62,10 @@ To make changes to this extension:
 3. Press `F5` to test your changes in a new VSCode window.
 
 ## Release Notes
+
+### 0.2.0
+
+- Changed default shortcuts.
 
 ### 0.1.2
 
