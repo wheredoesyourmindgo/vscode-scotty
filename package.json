@@ -28,11 +28,43 @@
     "commands": [
       {
         "command": "scotty.jumpForward",
-        "title": "Jump Forward"
+        "title": "Jump Forward",
+        "category": "Scotty"
       },
       {
         "command": "scotty.jumpBackward",
-        "title": "Jump Backward"
+        "title": "Jump Backward",
+        "category": "Scotty"
+      },
+      {
+        "command": "scotty.selectForward",
+        "title": "Select Forward",
+        "category": "Scotty"
+      },
+      {
+        "command": "scotty.selectBackward",
+        "title": "Select Backward",
+        "category": "Scotty"
+      },
+      {
+        "command": "scotty.jumpForwardCaseInsensitive",
+        "title": "Jump Forward (Case-Insensitive)",
+        "category": "Scotty"
+      },
+      {
+        "command": "scotty.jumpBackwardCaseInsensitive",
+        "title": "Jump Backward (Case-Insensitive)",
+        "category": "Scotty"
+      },
+      {
+        "command": "scotty.selectForwardCaseInsensitive",
+        "title": "Select Forward (Case-Insensitive)",
+        "category": "Scotty"
+      },
+      {
+        "command": "scotty.selectBackwardCaseInsensitive",
+        "title": "Select Backward (Case-Insensitive)",
+        "category": "Scotty"
       }
     ],
     "keybindings": [
@@ -103,5 +135,9 @@
     "eslint": "8.57.1",
     "prettier": "3.9.10",
     "typescript": "5.9.3"
+  },
+  "homepage": "https://github.com/wheredoesyourmindgo/vscode-scotty#readme",
+  "bugs": {
+    "url": "https://github.com/wheredoesyourmindgo/vscode-scotty/issues"
   }
 }

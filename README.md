@@ -1,83 +1,55 @@
-# Scotty
+# Beam Me Up, Scotty!
 
-Scotty is a Visual Studio Code extension that allows you to quickly jump to and select specific characters or sequences of characters within your code. You can perform these jumps either case-sensitively or case-insensitively, and you have the option to select text as you jump.
+[![CI](https://github.com/wheredoesyourmindgo/vscode-scotty/actions/workflows/ci.yml/badge.svg)](https://github.com/wheredoesyourmindgo/vscode-scotty/actions/workflows/ci.yml)
 
-<!-- ![Scotty Icon](resources/icon.webp) -->
+Jump to, or select up to, the next or previous occurrence of any characters in the current file, without leaving the keyboard. If you've used [clever-f.vim](https://github.com/rhysd/clever-f.vim), this will feel familiar.
 
-## Features
+## How it works
 
-- Jump forward or backward to a specific character or sequence of characters.
-- Select text as you jump forward or backward.
-- Perform jumps case-sensitively or case-insensitively.
-- Easily reset the jump state by changing the selection, document, or active editor.
+1. Press `Ctrl+0` to jump forward, or `Ctrl+7` to jump back.
+2. Type one or more characters and press `Enter`. The cursor lands on the next (or previous) match.
+3. Press `Ctrl+0` or `Ctrl+7` again to keep jumping to the same characters. You won't be asked again.
 
-## Keybindings
+Moving the cursor yourself, editing the file, or switching editors ends the repeat, and the next jump asks for new characters.
 
-| Command                                | Keybinding                | Description                                        |
-|----------------------------------------|---------------------------|----------------------------------------------------|
-| Scotty: Jump Forward                   | `ctrl+0`                   | Jump forward to the next occurrence of a character |
-| Scotty: Jump Backward                  | `ctrl+7`                   | Jump backward to the previous occurrence of a character |
-| Scotty: Select Forward                 | `ctrl+shift+0`             | Select forward to the next occurrence of a character |
-| Scotty: Select Backward                | `ctrl+shift+7`             | Select backward to the previous occurrence of a character |
-| Scotty: Jump Forward (Case-Insensitive)| `ctrl+alt+0`               | Jump forward to the next occurrence of a character (case-insensitive) |
-| Scotty: Jump Backward (Case-Insensitive)| `ctrl+alt+7`              | Jump backward to the previous occurrence of a character (case-insensitive) |
-| Scotty: Select Forward (Case-Insensitive)| `ctrl+alt+shift+0`       | Select forward to the next occurrence of a character (case-insensitive) |
-| Scotty: Select Backward (Case-Insensitive)| `ctrl+alt+shift+7`      | Select backward to the previous occurrence of a character (case-insensitive) |
+Add `Shift` to select as you jump. The selection grows from where the cursor was when you started, so you can go forward past your target and then back again without losing the start of the selection.
 
-## Usage
+Add `Alt` to ignore case.
 
-1. **Jump Forward**:
-   - Press `ctrl+0` to jump forward to the next occurrence of a character or sequence of characters.
-   - Enter the character(s) to jump to in the input box that appears.
+## Commands and keybindings
 
-2. **Jump Backward**:
-   - Press `ctrl+7` to jump backward to the previous occurrence of a character or sequence of characters.
-   - Enter the character(s) to jump to in the input box that appears.
+All commands are also in the Command Palette under **Scotty**.
 
-3. **Select Forward**:
-   - Press `ctrl+shift+0` to select forward to the next occurrence of a character or sequence of characters.
-   - Enter the character(s) to jump to in the input box that appears.
+| Command | Keybinding |
+| --- | --- |
+| Scotty: Jump Forward | `Ctrl+0` |
+| Scotty: Jump Backward | `Ctrl+7` |
+| Scotty: Select Forward | `Ctrl+Shift+0` |
+| Scotty: Select Backward | `Ctrl+Shift+7` |
+| Scotty: Jump Forward (Case-Insensitive) | `Ctrl+Alt+0` |
+| Scotty: Jump Backward (Case-Insensitive) | `Ctrl+Alt+7` |
+| Scotty: Select Forward (Case-Insensitive) | `Ctrl+Alt+Shift+0` |
+| Scotty: Select Backward (Case-Insensitive) | `Ctrl+Alt+Shift+7` |
 
-4. **Select Backward**:
-   - Press `ctrl+shift+7` to select backward to the previous occurrence of a character or sequence of characters.
-   - Enter the character(s) to jump to in the input box that appears.
+`Ctrl` is used on macOS too, so these don't clash with `Cmd+0`.
 
-5. **Case-Insensitive Jump and Select**:
-   - Use the `alt` key with the above commands to perform case-insensitive jumps and selections.
+To use different keys, open **Preferences: Open Keyboard Shortcuts** and search for `scotty`.
 
-## Installation
+## Jump straight to specific characters
 
-1. Download and install Visual Studio Code.
-2. Clone or download this repository.
-3. Open the repository folder in Visual Studio Code.
-4. Press `F5` to open a new VSCode window with the extension loaded.
-5. Use the provided keybindings to start jumping and selecting characters in your code.
+Every command takes an optional argument: the characters to jump to. A keybinding with `args` skips the prompt. For example, to jump to the next `(` with `Ctrl+9`, add this to your `keybindings.json`:
 
-## Development
+```jsonc
+{
+  "key": "ctrl+9",
+  "command": "scotty.jumpForward",
+  "args": "(",
+  "when": "editorTextFocus"
+}
+```
 
-To make changes to this extension:
-
-1. Open the repository folder in Visual Studio Code.
-2. Make your changes to the source files.
-3. Press `F5` to test your changes in a new VSCode window.
-
-## Release Notes
-
-### 0.2.0
-
-- Changed default shortcuts.
-
-### 0.1.2
-
-- Initial release of Scotty.
-- Added support for jumping and selecting characters forward and backward.
-- Added case-insensitive options for jumping and selecting.
-
-## Contributing
-
-Contributions are welcome! Please submit a pull request or open an issue to discuss any changes.
+After a jump like this, the regular repeat keys keep jumping to `(`.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
+[MIT](LICENSE)

@@ -1,174 +1,170 @@
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'
+
+type Direction = 'forward' | 'backward'
+
+interface JumpState {
+  text: string
+  caseInsensitive: boolean
+  // Where the last jump landed; repeating only works while the cursor is still here
+  position: vscode.Position
+  document: vscode.TextDocument
+}
+
+const STATUS_MESSAGE_TIMEOUT_MS = 3000
 
 export function activate(context: vscode.ExtensionContext) {
-  let jumpToChar: string | undefined;
-  let lastJumpPosition: vscode.Position | undefined;
-  let autoJumpEnabled: boolean = false;
-  let shouldSelect: boolean = false;
-  let caseInsensitive: boolean = false;
+  let state: JumpState | undefined
 
-  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
-  statusBarItem.show();
+  const isRepeatable = (editor: vscode.TextEditor) =>
+    state !== undefined &&
+    state.document === editor.document &&
+    editor.selection.active.isEqual(state.position)
 
-  const resetAutoJump = () => {
-    autoJumpEnabled = false;
-    lastJumpPosition = undefined;
-    jumpToChar = undefined;
-    caseInsensitive = false;
-    statusBarItem.text = '';
-  };
+  context.subscriptions.push(
+    // Moving the cursor anywhere other than the last jump target ends the repeat
+    vscode.window.onDidChangeTextEditorSelection((event) => {
+      if (state && !isRepeatable(event.textEditor)) {
+        state = undefined
+      }
+    }),
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      if (state && event.document === state.document) {
+        state = undefined
+      }
+    }),
+    vscode.window.onDidChangeActiveTextEditor(() => {
+      state = undefined
+    })
+  )
 
-  vscode.window.onDidChangeTextEditorSelection(() => {
-    if (!autoJumpEnabled) {
-      resetAutoJump();
-    }
-  });
-
-  vscode.workspace.onDidChangeTextDocument(() => {
-    resetAutoJump();
-  });
-
-  vscode.window.onDidChangeActiveTextEditor(() => {
-    resetAutoJump();
-  });
-
-  const captureNextChar = (direction: 'forward' | 'backward', select: boolean, caseInsensitiveFlag: boolean) => {
-    shouldSelect = select;
-    caseInsensitive = caseInsensitiveFlag;
-    statusBarItem.text = direction === 'forward' ? 'Type characters to jump to' : 'Type characters to jump back to';
-
-    vscode.window
-      .showInputBox({
-        prompt: statusBarItem.text,
-        ignoreFocusOut: true,
-      })
-      .then((char) => {
-        if (char) {
-          const editor = vscode.window.activeTextEditor;
-          if (editor) {
-            const document = editor.document;
-            const position = editor.selection.active;
-            jumpToChar = char;
-
-            if (direction === 'forward') {
-              jumpToNextOccurrence(document, position, jumpToChar, 'next', shouldSelect, caseInsensitive);
-            } else if (direction === 'backward') {
-              jumpToNextOccurrence(document, position, jumpToChar, 'previous', shouldSelect, caseInsensitive);
-            }
-
-            statusBarItem.text = '';
-            autoJumpEnabled = true;
-          }
-        } else {
-          resetAutoJump();
-        }
-      });
-  };
-
-  const jumpToNextOccurrence = (
-    document: vscode.TextDocument,
-    position: vscode.Position,
-    char: string,
-    type: 'next' | 'previous',
+  const jump = (
+    editor: vscode.TextEditor,
+    text: string,
+    direction: Direction,
     select: boolean,
     caseInsensitive: boolean
   ) => {
-    const text = document.getText();
-    let index: number;
-    const searchText = caseInsensitive ? text.toLowerCase() : text;
-    const searchChar = caseInsensitive ? char.toLowerCase() : char;
+    const document = editor.document
+    const active = editor.selection.active
+    const index = findOccurrence(
+      document.getText(),
+      text,
+      document.offsetAt(active),
+      direction,
+      caseInsensitive
+    )
 
-    if (type === 'next') {
-      index = searchText.indexOf(searchChar, document.offsetAt(position) + 1);
-    } else {
-      index = searchText.lastIndexOf(searchChar, document.offsetAt(position) - 1);
+    if (index === -1) {
+      vscode.window.setStatusBarMessage(
+        `Scotty: "${text}" not found`,
+        STATUS_MESSAGE_TIMEOUT_MS
+      )
+      return
     }
 
-    if (index !== -1) {
-      const newPosition = document.positionAt(index);
-      const editor = vscode.window.activeTextEditor;
-      if (editor) {
-        if (select) {
-          const currentSelection = editor.selection;
-          let newSelection;
-          if (type === 'next') {
-            newSelection = new vscode.Selection(currentSelection.start, newPosition);
-          } else {
-            newSelection = new vscode.Selection(currentSelection.end, newPosition);
-          }
-          editor.selection = newSelection;
-        } else {
-          editor.selection = new vscode.Selection(newPosition, newPosition);
-        }
-        vscode.window.setStatusBarMessage(`Jumped to ${type} "${char}"`);
-        lastJumpPosition = newPosition;
-      }
-    } else {
-      vscode.window.setStatusBarMessage(`Character "${char}" not found`);
-    }
-  };
+    const target = document.positionAt(index)
+    // When selecting, keep the anchor where the selection started
+    const anchor = select ? editor.selection.anchor : target
+    editor.selection = new vscode.Selection(anchor, target)
+    editor.revealRange(new vscode.Range(target, target))
 
-  const handleJumpCommand = (direction: 'forward' | 'backward', select: boolean, caseInsensitiveFlag: boolean) => {
-    const editor = vscode.window.activeTextEditor;
+    state = {text, caseInsensitive, position: target, document}
+  }
+
+  const handleJumpCommand = async (
+    direction: Direction,
+    select: boolean,
+    caseInsensitive: boolean,
+    text?: unknown
+  ) => {
+    const editor = vscode.window.activeTextEditor
     if (!editor) {
-      return;
+      return
     }
 
-    const document = editor.document;
-    const position = editor.selection.active;
-
-    if (autoJumpEnabled && lastJumpPosition && position.isEqual(lastJumpPosition)) {
-      if (direction === 'forward' && jumpToChar) {
-        jumpToNextOccurrence(document, position, jumpToChar, 'next', select, caseInsensitive);
-      } else if (direction === 'backward' && jumpToChar) {
-        jumpToNextOccurrence(document, position, jumpToChar, 'previous', select, caseInsensitive);
-      }
-    } else {
-      captureNextChar(direction, select, caseInsensitiveFlag);
+    // Text passed as a command argument (e.g. from a keybinding) jumps directly
+    if (typeof text === 'string' && text.length > 0) {
+      jump(editor, text, direction, select, caseInsensitive)
+      return
     }
-  };
 
-  let jumpForward = vscode.commands.registerCommand('scotty.jumpForward', () => {
-    handleJumpCommand('forward', false, false);
-  });
+    // Repeat the last jump, keeping its text and case sensitivity
+    if (state && isRepeatable(editor)) {
+      jump(editor, state.text, direction, select, state.caseInsensitive)
+      return
+    }
 
-  let jumpBackward = vscode.commands.registerCommand('scotty.jumpBackward', () => {
-    handleJumpCommand('backward', false, false);
-  });
+    const input = await vscode.window.showInputBox({
+      prompt:
+        direction === 'forward'
+          ? 'Type characters to jump to'
+          : 'Type characters to jump back to',
+      ignoreFocusOut: true
+    })
 
-  let selectForward = vscode.commands.registerCommand('scotty.selectForward', () => {
-    handleJumpCommand('forward', true, false);
-  });
+    // The user may have switched editors while the input box was open
+    if (input && vscode.window.activeTextEditor === editor) {
+      jump(editor, input, direction, select, caseInsensitive)
+    }
+  }
 
-  let selectBackward = vscode.commands.registerCommand('scotty.selectBackward', () => {
-    handleJumpCommand('backward', true, false);
-  });
+  const commands: [string, Direction, boolean, boolean][] = [
+    ['scotty.jumpForward', 'forward', false, false],
+    ['scotty.jumpBackward', 'backward', false, false],
+    ['scotty.selectForward', 'forward', true, false],
+    ['scotty.selectBackward', 'backward', true, false],
+    ['scotty.jumpForwardCaseInsensitive', 'forward', false, true],
+    ['scotty.jumpBackwardCaseInsensitive', 'backward', false, true],
+    ['scotty.selectForwardCaseInsensitive', 'forward', true, true],
+    ['scotty.selectBackwardCaseInsensitive', 'backward', true, true]
+  ]
 
-  let jumpForwardCaseInsensitive = vscode.commands.registerCommand('scotty.jumpForwardCaseInsensitive', () => {
-    handleJumpCommand('forward', false, true);
-  });
+  for (const [id, direction, select, caseInsensitive] of commands) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(id, (text?: unknown) =>
+        handleJumpCommand(direction, select, caseInsensitive, text)
+      )
+    )
+  }
+}
 
-  let jumpBackwardCaseInsensitive = vscode.commands.registerCommand('scotty.jumpBackwardCaseInsensitive', () => {
-    handleJumpCommand('backward', false, true);
-  });
+/**
+ * Returns the offset of the next (forward) or previous (backward) occurrence
+ * of `text` relative to `offset`, or -1 if there is none. A match at `offset`
+ * itself is skipped so repeated jumps move past the current target.
+ */
+export function findOccurrence(
+  haystack: string,
+  text: string,
+  offset: number,
+  direction: Direction,
+  caseInsensitive: boolean
+): number {
+  if (!caseInsensitive) {
+    return direction === 'forward'
+      ? haystack.indexOf(text, offset + 1)
+      : offset > 0
+        ? haystack.lastIndexOf(text, offset - 1)
+        : -1
+  }
 
-  let selectForwardCaseInsensitive = vscode.commands.registerCommand('scotty.selectForwardCaseInsensitive', () => {
-    handleJumpCommand('forward', true, true);
-  });
+  // A case-insensitive regex keeps offsets intact, unlike toLowerCase(), which
+  // can change string length for some characters
+  const pattern = new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
 
-  let selectBackwardCaseInsensitive = vscode.commands.registerCommand('scotty.selectBackwardCaseInsensitive', () => {
-    handleJumpCommand('backward', true, true);
-  });
+  if (direction === 'forward') {
+    pattern.lastIndex = offset + 1
+    return pattern.exec(haystack)?.index ?? -1
+  }
 
-  context.subscriptions.push(jumpForward);
-  context.subscriptions.push(jumpBackward);
-  context.subscriptions.push(selectForward);
-  context.subscriptions.push(selectBackward);
-  context.subscriptions.push(jumpForwardCaseInsensitive);
-  context.subscriptions.push(jumpBackwardCaseInsensitive);
-  context.subscriptions.push(selectForwardCaseInsensitive);
-  context.subscriptions.push(selectBackwardCaseInsensitive);
-  context.subscriptions.push(statusBarItem);
+  let last = -1
+  let match: RegExpExecArray | null
+  while ((match = pattern.exec(haystack)) && match.index < offset) {
+    last = match.index
+    // Step one character at a time so overlapping matches are found
+    pattern.lastIndex = match.index + 1
+  }
+  return last
 }
 
 export function deactivate() {}
