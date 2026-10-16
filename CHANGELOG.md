@@ -13,6 +13,7 @@ All notable changes to the "Beam Me Up, Scotty!" extension will be documented in
 - Case-insensitive search no longer lands on the wrong offset for characters whose lowercase form has a different length.
 - Rewrite README and shorten the description.
 - Move to the Keymaps category.
+- New icon.
 
 ## [0.3.0] - 2024-07-02
 

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Colors from the Nushu Dark theme -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b2723"/>
+      <stop offset="1" stop-color="#25211d"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <!-- text lines -->
+  <g fill="#7e746a" fill-opacity="0.5">
+    <rect x="35" y="71" width="42" height="7" rx="3.5"/>
+    <rect x="22" y="95" width="70" height="7" rx="3.5"/>
+  </g>
+  <!-- caret -->
+  <rect x="22" y="64" width="5" height="21" rx="2.5" fill="#d7cfc7"/>
+  <!-- target character -->
+  <rect x="85" y="64" width="21" height="21" rx="5" fill="#79c0ff"/>
+  <!-- jump arc -->
+  <path d="M24.5 54 C 30 22, 90 20, 95.5 50" fill="none" stroke="#79c0ff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M87 44 L 95.5 54 L 104 44" fill="none" stroke="#79c0ff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -11,3 +11,4 @@ src/**
 install-extension.sh
 .prettierrc
 out/test/**
+resources/*.svg
