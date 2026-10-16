@@ -3,7 +3,7 @@
   "displayName": "Beam Me Up, Scotty!",
   "description": "Jump to and select the next or previous occurrence of any characters, like clever-f.vim.",
   "categories": [
-    "Keymaps"
+    "Other"
   ],
   "keywords": [
     "jump",

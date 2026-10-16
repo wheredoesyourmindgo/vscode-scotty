@@ -2,6 +2,10 @@
 
 All notable changes to the "Beam Me Up, Scotty!" extension will be documented in this file.
 
+## [0.4.1] - 2026-10-16
+
+- Move back to the Other category. Keymaps is meant for keybinding packs from other editors.
+
 ## [0.4.0] - 2026-10-16
 
 - All eight commands now appear in the Command Palette under **Scotty**. Previously only Jump Forward and Jump Backward did.
